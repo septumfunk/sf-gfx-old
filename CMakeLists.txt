@@ -30,11 +30,6 @@ FetchContent_Declare(
     GIT_TAG master
 )
 FetchContent_MakeAvailable(sf-std)
-add_custom_command(TARGET sf-gfx POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        $<TARGET_FILE:sf-std>
-        $<TARGET_FILE_DIR:sf-gfx>
-)
 
 FetchContent_Declare(
     glfw
@@ -42,11 +37,6 @@ FetchContent_Declare(
     GIT_TAG master
 )
 FetchContent_MakeAvailable(glfw)
-add_custom_command(TARGET sf-gfx POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        $<TARGET_FILE:glfw>
-        $<TARGET_FILE_DIR:sf-gfx>
-)
 
 FetchContent_Declare(
     cglm
@@ -54,11 +44,12 @@ FetchContent_Declare(
     GIT_TAG master
 )
 FetchContent_MakeAvailable(cglm)
-add_custom_command(TARGET sf-gfx POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        $<TARGET_FILE:cglm>
-        $<TARGET_FILE_DIR:sf-gfx>
-)
+if (WIN32 AND BUILD_SHARED_LIBS)
+    add_custom_command(TARGET sf-gfx POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:septek-core> $<TARGET_RUNTIME_DLLS:septek-core>
+        USES_TERMINAL COMMAND_EXPAND_LISTS
+    )
+endif()
 
 
 target_link_libraries(sf-gfx PUBLIC
