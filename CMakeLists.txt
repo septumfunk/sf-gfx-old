@@ -12,6 +12,7 @@ endif()
 project(sf-gfx C)
 
 add_library(sf-gfx ${SF_LIBRARY_TYPE}
+    src/glad.c
     src/graphics.c
 )
 target_include_directories(sf-gfx PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
