@@ -1,11 +1,11 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 
-#include "structures.h"
-#include <cglm/types.h>
+#include <sf/result.h>
+#include <sf/numerics.h>
 #include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <cglm/cglm.h>
-#include "input.h"
 
 /// A movable camera.
 typedef struct {
@@ -29,7 +29,7 @@ typedef struct {
 
     sf_camera *camera;
 
-    int8_t keyboard[sf_KEY_COUNT];
+    int8_t keyboard[GLFW_KEY_LAST + 1];
     uint8_t kb_p;
     char keyboard_string[UINT8_MAX];
 } sf_window;

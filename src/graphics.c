@@ -1,11 +1,9 @@
-#include "graphics.h"
-#include "GLFW/glfw3.h"
-#include "glad/glad.h"
-#include "input.h"
-#include "files.h"
-#include "structures.h"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <stdio.h>
 #include <string.h>
+#include <sf/result.h>
+#include "sf/graphics.h"
 
 #define CLEAN_BIND true
 

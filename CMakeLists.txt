@@ -12,8 +12,7 @@ endif()
 project(sf-gfx C)
 
 add_library(sf-gfx ${SF_LIBRARY_TYPE}
-    src/str.c
-    src/dynamic.c
+    src/graphics.c
 )
 target_include_directories(sf-gfx PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
@@ -23,21 +22,46 @@ include(FetchContent)
 
 FetchContent_Declare(
     sf-std
-    GIT_REPOSITORY https://github.com/septumfunk/sf-std.git
+    GIT_REPOSITORY https://github.com/septek/sf-std.git
     GIT_TAG master
 )
 FetchContent_MakeAvailable(sf-std)
-add_custom_command(TARGET septek-core POST_BUILD
+add_custom_command(TARGET sf-gfx POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         $<TARGET_FILE:sf-std>
-        $<TARGET_FILE_DIR:septek-core>
+        $<TARGET_FILE_DIR:sf-gfx>
 )
+
+FetchContent_Declare(
+    glfw
+    GIT_REPOSITORY https://github.com/glfw/glfw.git
+    GIT_TAG master
+)
+FetchContent_MakeAvailable(glfw)
+add_custom_command(TARGET sf-gfx POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:glfw>
+        $<TARGET_FILE_DIR:sf-gfx>
+)
+
+FetchContent_Declare(
+    cglm
+    GIT_REPOSITORY https://github.com/recp/cglm.git
+    GIT_TAG master
+)
+FetchContent_MakeAvailable(cglm)
+add_custom_command(TARGET sf-gfx POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:cglm>
+        $<TARGET_FILE_DIR:sf-gfx>
+)
+
 
 target_link_libraries(sf-gfx PUBLIC
     sf-std
+    glfw
+    cglm
 )
-
-
 target_compile_options(sf-gfx PRIVATE
     -Wall -Werror -Wextra -pedantic -Wconversion
     -Wsign-conversion -Wformat=2 -Wundef
