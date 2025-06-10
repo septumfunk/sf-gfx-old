@@ -42,11 +42,11 @@ typedef struct {
 void sf_window_free(sf_window *window);
 
 /// Check is a key is currently pressed down.
-inline bool sf_key_check(sf_window *window, sf_key key)    { return window->keyboard[key] > 0;                }
+static inline bool sf_key_check(sf_window *window, sf_key key)    { return window->keyboard[key] > 0;                }
 /// Check if a key was pressed on this frame.
-inline bool sf_key_pressed(sf_window *window, sf_key key)  { return window->keyboard[key] == SF_KEY_PRESSED; }
+static inline bool sf_key_pressed(sf_window *window, sf_key key)  { return window->keyboard[key] == SF_KEY_PRESSED; }
 /// Check if a key was released on this frame.
-inline bool sf_key_released(sf_window *window, sf_key key) { return window->keyboard[key] == SF_KEY_RELEASED; }
+static inline bool sf_key_released(sf_window *window, sf_key key) { return window->keyboard[key] == SF_KEY_RELEASED; }
 /// Get the string of keys pressed since the last time this function was called.
 [[nodiscard]] sf_str sf_key_string(sf_window *window);
 
@@ -77,7 +77,7 @@ typedef struct {
 void sf_shader_free(sf_shader *shader);
 
 /// Bind to the shader's OpenGL program.
-inline void sf_shader_bind(sf_shader *shader) { glUseProgram(shader->program); }
+static inline void sf_shader_bind(sf_shader *shader) { glUseProgram(shader->program); }
 
 /// Set a shader's float uniform to the desired value by name.
 [[nodiscard]] sf_result sf_shader_uniform_float(sf_shader *shader, sf_str name, float value);
@@ -89,7 +89,7 @@ inline void sf_shader_bind(sf_shader *shader) { glUseProgram(shader->program); }
 [[nodiscard]] sf_result sf_shader_uniform_mat4(sf_shader *shader, sf_str name, mat4 value);
 
 /// Log OpenGL errors to the console.
-inline void sf_opengl_log() {
+static inline void sf_opengl_log() {
     GLenum err;
     while((err = glGetError()) != GL_NO_ERROR){
         printf("OpenGL Error: %d\n", err);
@@ -100,7 +100,7 @@ inline void sf_opengl_log() {
 typedef struct {
     uint8_t r, g, b, a;
 } sf_rgba;
-inline sf_str sf_rgba_str(const sf_rgba rgba) {
+static inline sf_str sf_rgba_str(const sf_rgba rgba) {
     return sf_str_fmt("{ %d, %d, %d, %d }",
         rgba.r,
         rgba.g,
@@ -122,7 +122,7 @@ typedef union {
 
 #define sf_rgbagl(rgba) ((sf_glcolor){ rgba.r/255.0f, rgba.g/255.0f, rgba.b/255.0f, rgba.a/255.0f})
 #define sf_glrgba(gl) ((sf_rgba){ (uint8_t)(gl.r * 255), (uint8_t)(gl.g * 255), (uint8_t)(gl.b * 255), (uint8_t)(gl.a * 255) })
-inline sf_str sf_glcolor_str(const sf_glcolor gl) {
+static inline sf_str sf_glcolor_str(const sf_glcolor gl) {
     return sf_str_fmt("{ %f, %f, %f, %f }",
         (double)gl.r,
         (double)gl.g,
@@ -160,12 +160,12 @@ void sf_mesh_free(sf_mesh *mesh);
 /// Copy a mesh to vram (Vertex Buffer)
 void sf_mesh_update(sf_mesh *mesh);
 /// Add a single vertex to a mesh's model.
-inline void sf_mesh_add_vertex(sf_mesh *mesh, sf_vertex vertex) {
+static inline void sf_mesh_add_vertex(sf_mesh *mesh, sf_vertex vertex) {
     sf_vec_push(&mesh->vertices, &vertex);
     sf_mesh_update(mesh);
 }
 /// Add an array of vertices to a mesh's model.
-inline void sf_mesh_add_vertices(sf_mesh *mesh, sf_vertex *vertices, size_t count) {
+static inline void sf_mesh_add_vertices(sf_mesh *mesh, sf_vertex *vertices, size_t count) {
     sf_vec_append(&mesh->vertices, vertices, count);
     sf_mesh_update(mesh);
 }
