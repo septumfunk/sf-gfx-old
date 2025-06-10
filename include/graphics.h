@@ -1,0 +1,180 @@
+#ifndef GRAPHICS_H
+#define GRAPHICS_H
+
+#include "structures.h"
+#include <cglm/types.h>
+#include <glad/glad.h>
+#include <cglm/cglm.h>
+#include "input.h"
+
+/// A movable camera.
+typedef struct {
+    sf_vec3 transform;
+    float fov;
+    mat4 projection;
+    GLuint framebuffer;
+} sf_camera;
+
+/// Create a new camera with its own framebuffer.
+sf_camera sf_camera_new(float fov, mat4 projection);
+/// Delete a camera and its framebuffer.
+void sf_camera_free(sf_camera *camera);
+
+/// A window with an active OpenGL context and keyboard controls.
+typedef struct {
+    GLFWwindow *handle;
+    sf_str title;
+    sf_vec2 size;
+    sf_vec2 mouse_position;
+
+    sf_camera *camera;
+
+    int8_t keyboard[sf_KEY_COUNT];
+    uint8_t kb_p;
+    char keyboard_string[UINT8_MAX];
+} sf_window;
+
+/// Construct and open a new OpenGL window.
+[[nodiscard]] sf_result sf_window_new(sf_window **out, const sf_str title, const sf_vec2 size, sf_camera *camera);
+/// Free a window and its resources.
+void sf_window_free(sf_window *window);
+
+/// Check is a key is currently pressed down.
+inline bool sf_key_check(sf_window *window, sf_key key)    { return window->keyboard[key] > 0;                }
+/// Check if a key was pressed on this frame.
+inline bool sf_key_pressed(sf_window *window, sf_key key)  { return window->keyboard[key] == sf_KEY_PRESSED; }
+/// Check if a key was released on this frame.
+inline bool sf_key_released(sf_window *window, sf_key key) { return window->keyboard[key] == sf_KEY_RELEASED; }
+/// Get the string of keys pressed since the last time this function was called.
+[[nodiscard]] sf_str sf_key_string(sf_window *window);
+
+/// Prepare for a frame, and/or return whether a window should close.
+/// Use this in a while loop.
+bool sf_window_loop(sf_window *window);
+/// Swap a window's buffers and finish the frame.
+void sf_window_swap(sf_window *window);
+
+/// Set the displayed title of a window.
+void sf_window_set_title(sf_window *window, const sf_str title);
+/// Set the displayed size of a window.
+void sf_window_set_size(sf_window *window, sf_vec2 size);
+
+/// An OpenGL shader program and its vertex/fragment glsl shaders.
+/// Uniform locations are automatically cached as you use them.
+typedef struct {
+    sf_str path;
+    GLuint vertex, fragment, program;
+    sf_map uniforms;
+} sf_shader;
+
+/// Compile and link shaders into a program.
+/// Returns a result if it fails.
+[[nodiscard]] sf_result sf_shader_new(sf_shader *out, sf_str path);
+/// Free a shader and its code/program.
+/// Cached uniforms will be reset.
+void sf_shader_free(sf_shader *shader);
+
+/// Bind to the shader's OpenGL program.
+inline void sf_shader_bind(sf_shader *shader) { glUseProgram(shader->program); }
+
+/// Set a shader's float uniform to the desired value by name.
+[[nodiscard]] sf_result sf_shader_uniform_float(sf_shader *shader, sf_str name, float value);
+/// Set a shader's vector2 uniform to the desired value by name.
+[[nodiscard]] sf_result sf_shader_uniform_vec2(sf_shader *shader, sf_str name, sf_vec2 value);
+/// Set a shader's vector3 uniform to the desired value by name.
+[[nodiscard]] sf_result sf_shader_uniform_vec3(sf_shader *shader, sf_str name, sf_vec3 value);
+/// Set a shader's matrix uniform to the desired value by name.
+[[nodiscard]] sf_result sf_shader_uniform_mat4(sf_shader *shader, sf_str name, mat4 value);
+
+/// Log OpenGL errors to the console.
+inline void sf_opengl_log() {
+    GLenum err;
+    while((err = glGetError()) != GL_NO_ERROR){
+        printf("OpenGL Error: %d\n", err);
+    }
+}
+
+/// A color defined by its Red, Blue, Green and Alpha
+typedef struct {
+    uint8_t r, g, b, a;
+} sf_rgba;
+inline sf_str sf_rgba_str(const sf_rgba rgba) {
+    return sf_str_fmt("{ %d, %d, %d, %d }",
+        rgba.r,
+        rgba.g,
+        rgba.a,
+        rgba.b
+    );
+}
+
+/// A color compatible with OpenGL.
+typedef union {
+    struct {
+        float r;
+        float g;
+        float b;
+        float a;
+    };
+    float gl[4];
+} sf_glcolor;
+
+#define sf_rgbagl(rgba) ((sf_glcolor){ rgba.r/255.0f, rgba.g/255.0f, rgba.b/255.0f, rgba.a/255.0f})
+#define sf_glrgba(gl) ((sf_rgba){ (uint8_t)(gl.r * 255), (uint8_t)(gl.g * 255), (uint8_t)(gl.b * 255), (uint8_t)(gl.a * 255) })
+inline sf_str sf_glcolor_str(const sf_glcolor gl) {
+    return sf_str_fmt("{ %f, %f, %f, %f }",
+        (double)gl.r,
+        (double)gl.g,
+        (double)gl.b,
+        (double)gl.a
+    );
+}
+
+/// Contains vertex data for composing a mesh.
+#pragma pack(push, 1)
+typedef struct {
+    sf_vec3 position;
+    sf_vec2 uv;
+    sf_rgba color;
+} sf_vertex;
+#pragma pack(pop)
+
+/// A bitfield containing information about an active mesh.
+typedef uint8_t sf_mesh_flags;
+#define sf_MESH_ACTIVE (sf_mesh_flags)0b10000000
+#define sf_MESH_VISIBLE (sf_mesh_flags)0b01000000
+
+/// A mesh containing data for drawing a 3d model of any variety.
+typedef struct {
+    GLuint vao, vbo;
+    sf_vec vertices;
+    sf_mesh_flags flags;
+} sf_mesh;
+
+/// Create a new, empty mesh.
+[[nodiscard]] sf_mesh sf_mesh_new();
+/// Free a mesh and delete all of its vertices.
+void sf_mesh_free(sf_mesh *mesh);
+
+/// Copy a mesh to vram (Vertex Buffer)
+void sf_mesh_update(sf_mesh *mesh);
+/// Add a single vertex to a mesh's model.
+inline void sf_mesh_add_vertex(sf_mesh *mesh, sf_vertex vertex) {
+    sf_vec_push(&mesh->vertices, &vertex);
+    sf_mesh_update(mesh);
+}
+/// Add an array of vertices to a mesh's model.
+inline void sf_mesh_add_vertices(sf_mesh *mesh, sf_vertex *vertices, size_t count) {
+    sf_vec_append(&mesh->vertices, vertices, count);
+    sf_mesh_update(mesh);
+}
+
+/// Draw a mesh to the view of a specific camera.
+sf_result sf_mesh_draw(sf_mesh *mesh, sf_shader *shader, sf_camera *camera, sf_node transform);
+
+typedef struct {
+    sf_node *node;
+    sf_mesh *mesh;
+    sf_shader *shader;
+} sf_renderer;
+
+#endif // GRAPHICS_H
