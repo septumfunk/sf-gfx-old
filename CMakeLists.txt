@@ -12,10 +12,13 @@ endif()
 project(sf-gfx C)
 
 add_library(sf-gfx ${SF_LIBRARY_TYPE}
-    src/glad.c
     src/graphics.c
 )
 target_include_directories(sf-gfx PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_library(glad ${SF_LIBRARY_TYPE}
+    src/glad.c
+)
+target_include_directories(glad PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 
 # Fetch Dependencies
@@ -62,6 +65,7 @@ target_link_libraries(sf-gfx PUBLIC
     sf-std
     glfw
     cglm
+    glad
 )
 target_compile_options(sf-gfx PRIVATE
     -Wall -Werror -Wextra -pedantic -Wconversion
