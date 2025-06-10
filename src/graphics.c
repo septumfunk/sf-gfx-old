@@ -3,7 +3,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <sf/result.h>
+#include <sf/files.h>
 #include "sf/graphics.h"
+#include "cglm/affine-pre.h"
+#include "cglm/affine.h"
+#include "cglm/mat4.h"
+#include "sf/numerics.h"
 
 #define CLEAN_BIND true
 
@@ -26,8 +31,8 @@ void sf_cb_err(int error_code, const char *error_string) {
 void sf_cb_key(GLFWwindow* window, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mods) {
     sf_window *win = glfwGetWindowUserPointer(window);
     switch (action) {
-        case GLFW_RELEASE: win->keyboard[key] = sf_KEY_RELEASED; break;
-        case GLFW_PRESS: win->keyboard[key] = sf_KEY_PRESSED; break;
+        case GLFW_RELEASE: win->keyboard[key] = SF_KEY_RELEASED; break;
+        case GLFW_PRESS: win->keyboard[key] = SF_KEY_PRESSED; break;
     }
 }
 
@@ -93,10 +98,10 @@ bool sf_window_loop(sf_window *window) {
 
 void sf_window_swap(sf_window *window) {
     glfwSwapBuffers(window->handle);
-    for (int i = 0; i < sf_KEY_COUNT; ++i) {
-        if (window->keyboard[i] == sf_KEY_PRESSED)
-            window->keyboard[i] = sf_KEY_DOWN;
-        if (window->keyboard[i] == sf_KEY_RELEASED)
+    for (int i = 0; i < SF_KEY_COUNT; ++i) {
+        if (window->keyboard[i] == SF_KEY_PRESSED)
+            window->keyboard[i] = SF_KEY_DOWN;
+        if (window->keyboard[i] == SF_KEY_RELEASED)
             window->keyboard[i] = 0;
     }
 }
@@ -295,10 +300,10 @@ void sf_mesh_free(sf_mesh *mesh) {
 
 void sf_mesh_update(sf_mesh *mesh) {
     glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
-    glBufferData(GL_ARRAY_BUFFER, mesh->vertices.count * mesh->vertices.element_size, mesh->vertices.data, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, (int64_t)(mesh->vertices.count * mesh->vertices.element_size), mesh->vertices.data, GL_DYNAMIC_DRAW);
 }
 
-sf_result sf_mesh_draw(sf_mesh *mesh, sf_shader *shader, sf_camera *camera, sf_node transform) {
+sf_result sf_mesh_draw(sf_mesh *mesh, sf_shader *shader, sf_camera *camera, sf_transform transform) {
     sf_shader_bind(shader);
 
     sf_result res;
@@ -307,21 +312,31 @@ sf_result sf_mesh_draw(sf_mesh *mesh, sf_shader *shader, sf_camera *camera, sf_n
         return res;
 
     mat4 campos;
-    sf_node_model(camera->transform, campos);
+    sf_transform_model(campos, camera->transform);
     res = sf_shader_uniform_mat4(shader, sf_lit("m_campos"), campos);
     if (!res.ok)
         return res;
 
     mat4 model;
-    sf_node_model(transform, model);
+    sf_transform_model(model, transform);
     res = sf_shader_uniform_mat4(shader, sf_lit("m_model"), model);
     if (!res.ok)
         return res;
 
     glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
-    glDrawArrays(GL_TRIANGLES, 0, mesh->vertices.count);
+    glDrawArrays(GL_TRIANGLES, 0, (int)mesh->vertices.count);
     if (CLEAN_BIND)
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     return sf_ok();
+}
+
+void sf_transform_model(mat4 out, const sf_transform transform) {
+    glm_mat4_identity(out);
+    glm_scale(out, (vec3){transform.scale.x, transform.scale.y, transform.scale.z});
+    glm_rotate_at(out, (vec3){0, 0, 0}, transform.rotation.x, (vec3){1, 0, 0});
+    glm_rotate_at(out, (vec3){0, 0, 0}, transform.rotation.x, (vec3){1, 0, 0});
+    glm_rotate_at(out, (vec3){0, 0, 0}, transform.rotation.y, (vec3){0, 1, 0});
+    glm_rotate_at(out, (vec3){0, 0, 0}, transform.rotation.z, (vec3){0, 0, 1});
+    glm_translate(out, (vec3){transform.position.x, transform.position.y, transform.position.z});
 }

@@ -1,0 +1,13 @@
+CompileFlags:
+    CompilationDatabase: build/
+    Add: [
+        -xc, -std=c23,
+        -Wall -Wextra -pedantic -Wconversion
+        -Wsign-conversion -Wformat=2 -Wundef
+        -Wold-style-cast -Woverloaded-virtual
+        -Wdouble-promotion -Wnon-virtual-dtor
+        -Wnull-dereference -Wstrict-overflow
+    ]
+    Compiler: clang
+Diagnostics:
+    UnusedIncludes: None

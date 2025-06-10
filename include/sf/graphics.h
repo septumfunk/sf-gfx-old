@@ -3,13 +3,15 @@
 
 #include <sf/result.h>
 #include <sf/numerics.h>
+#include <sf/dynamic.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <cglm/cglm.h>
+#include "sf/input.h"
 
 /// A movable camera.
 typedef struct {
-    sf_vec3 transform;
+    sf_transform transform;
     float fov;
     mat4 projection;
     GLuint framebuffer;
@@ -42,9 +44,9 @@ void sf_window_free(sf_window *window);
 /// Check is a key is currently pressed down.
 inline bool sf_key_check(sf_window *window, sf_key key)    { return window->keyboard[key] > 0;                }
 /// Check if a key was pressed on this frame.
-inline bool sf_key_pressed(sf_window *window, sf_key key)  { return window->keyboard[key] == sf_KEY_PRESSED; }
+inline bool sf_key_pressed(sf_window *window, sf_key key)  { return window->keyboard[key] == SF_KEY_PRESSED; }
 /// Check if a key was released on this frame.
-inline bool sf_key_released(sf_window *window, sf_key key) { return window->keyboard[key] == sf_KEY_RELEASED; }
+inline bool sf_key_released(sf_window *window, sf_key key) { return window->keyboard[key] == SF_KEY_RELEASED; }
 /// Get the string of keys pressed since the last time this function was called.
 [[nodiscard]] sf_str sf_key_string(sf_window *window);
 
@@ -146,7 +148,7 @@ typedef uint8_t sf_mesh_flags;
 /// A mesh containing data for drawing a 3d model of any variety.
 typedef struct {
     GLuint vao, vbo;
-    sf_vec vertices;
+    sf_vec vertices; /// Should contain no more than INT_MAX vertices.
     sf_mesh_flags flags;
 } sf_mesh;
 
@@ -169,12 +171,15 @@ inline void sf_mesh_add_vertices(sf_mesh *mesh, sf_vertex *vertices, size_t coun
 }
 
 /// Draw a mesh to the view of a specific camera.
-sf_result sf_mesh_draw(sf_mesh *mesh, sf_shader *shader, sf_camera *camera, sf_node transform);
+sf_result sf_mesh_draw(sf_mesh *mesh, sf_shader *shader, sf_camera *camera, sf_transform transform);
 
 typedef struct {
-    sf_node *node;
+    sf_transform *node;
     sf_mesh *mesh;
     sf_shader *shader;
 } sf_renderer;
+
+/// Turns an sf_transform into a model matrix.
+void sf_transform_model(mat4 out, const sf_transform transform);
 
 #endif // GRAPHICS_H

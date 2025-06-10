@@ -1,6 +1,5 @@
 build
-build/*
-.cache
+build/
 *.exe
 *.o
-.clangd
+.cache
