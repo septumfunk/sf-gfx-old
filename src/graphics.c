@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sf/result.h>
-#include <sf/files.h>
+#include <sf/fs.h>
 #include "sf/graphics.h"
 #include "cglm/affine-pre.h"
 #include "cglm/affine.h"
