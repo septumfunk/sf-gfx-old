@@ -8,6 +8,7 @@
 #include <GLFW/glfw3.h>
 #include <cglm/cglm.h>
 #include "sf/input.h"
+#include "export.h"
 
 /// A movable camera.
 typedef struct {
@@ -18,9 +19,9 @@ typedef struct {
 } sf_camera;
 
 /// Create a new camera with its own framebuffer.
-sf_camera sf_camera_new(float fov, mat4 projection);
+EXPORT sf_camera sf_camera_new(float fov, mat4 projection);
 /// Delete a camera and its framebuffer.
-void sf_camera_free(sf_camera *camera);
+EXPORT void sf_camera_free(sf_camera *camera);
 
 /// A window with an active OpenGL context and keyboard controls.
 typedef struct {
@@ -37,9 +38,9 @@ typedef struct {
 } sf_window;
 
 /// Construct and open a new OpenGL window.
-[[nodiscard]] sf_result sf_window_new(sf_window **out, const sf_str title, const sf_vec2 size, sf_camera *camera);
+[[nodiscard]] EXPORT sf_result sf_window_new(sf_window **out, const sf_str title, const sf_vec2 size, sf_camera *camera);
 /// Free a window and its resources.
-void sf_window_free(sf_window *window);
+EXPORT void sf_window_free(sf_window *window);
 
 /// Check is a key is currently pressed down.
 static inline bool sf_key_check(sf_window *window, sf_key key)    { return window->keyboard[key] > 0;                }
@@ -52,14 +53,14 @@ static inline bool sf_key_released(sf_window *window, sf_key key) { return windo
 
 /// Prepare for a frame, and/or return whether a window should close.
 /// Use this in a while loop.
-bool sf_window_loop(sf_window *window);
+EXPORT bool sf_window_loop(sf_window *window);
 /// Swap a window's buffers and finish the frame.
-void sf_window_swap(sf_window *window);
+EXPORT void sf_window_swap(sf_window *window);
 
 /// Set the displayed title of a window.
-void sf_window_set_title(sf_window *window, const sf_str title);
+EXPORT void sf_window_set_title(sf_window *window, const sf_str title);
 /// Set the displayed size of a window.
-void sf_window_set_size(sf_window *window, sf_vec2 size);
+EXPORT void sf_window_set_size(sf_window *window, sf_vec2 size);
 
 /// An OpenGL shader program and its vertex/fragment glsl shaders.
 /// Uniform locations are automatically cached as you use them.
@@ -71,22 +72,22 @@ typedef struct {
 
 /// Compile and link shaders into a program.
 /// Returns a result if it fails.
-[[nodiscard]] sf_result sf_shader_new(sf_shader *out, sf_str path);
+[[nodiscard]] EXPORT sf_result sf_shader_new(sf_shader *out, sf_str path);
 /// Free a shader and its code/program.
 /// Cached uniforms will be reset.
-void sf_shader_free(sf_shader *shader);
+EXPORT void sf_shader_free(sf_shader *shader);
 
 /// Bind to the shader's OpenGL program.
 static inline void sf_shader_bind(sf_shader *shader) { glUseProgram(shader->program); }
 
 /// Set a shader's float uniform to the desired value by name.
-[[nodiscard]] sf_result sf_shader_uniform_float(sf_shader *shader, sf_str name, float value);
+[[nodiscard]] EXPORT sf_result sf_shader_uniform_float(sf_shader *shader, sf_str name, float value);
 /// Set a shader's vector2 uniform to the desired value by name.
-[[nodiscard]] sf_result sf_shader_uniform_vec2(sf_shader *shader, sf_str name, sf_vec2 value);
+[[nodiscard]] EXPORT sf_result sf_shader_uniform_vec2(sf_shader *shader, sf_str name, sf_vec2 value);
 /// Set a shader's vector3 uniform to the desired value by name.
-[[nodiscard]] sf_result sf_shader_uniform_vec3(sf_shader *shader, sf_str name, sf_vec3 value);
+[[nodiscard]] EXPORT sf_result sf_shader_uniform_vec3(sf_shader *shader, sf_str name, sf_vec3 value);
 /// Set a shader's matrix uniform to the desired value by name.
-[[nodiscard]] sf_result sf_shader_uniform_mat4(sf_shader *shader, sf_str name, mat4 value);
+[[nodiscard]] EXPORT sf_result sf_shader_uniform_mat4(sf_shader *shader, sf_str name, mat4 value);
 
 /// Log OpenGL errors to the console.
 static inline void sf_opengl_log() {
@@ -153,12 +154,12 @@ typedef struct {
 } sf_mesh;
 
 /// Create a new, empty mesh.
-[[nodiscard]] sf_mesh sf_mesh_new();
+[[nodiscard]] EXPORT sf_mesh sf_mesh_new();
 /// Free a mesh and delete all of its vertices.
-void sf_mesh_free(sf_mesh *mesh);
+EXPORT void sf_mesh_free(sf_mesh *mesh);
 
 /// Copy a mesh to vram (Vertex Buffer)
-void sf_mesh_update(sf_mesh *mesh);
+EXPORT void sf_mesh_update(sf_mesh *mesh);
 /// Add a single vertex to a mesh's model.
 static inline void sf_mesh_add_vertex(sf_mesh *mesh, sf_vertex vertex) {
     sf_vec_push(&mesh->vertices, &vertex);
@@ -171,7 +172,7 @@ static inline void sf_mesh_add_vertices(sf_mesh *mesh, sf_vertex *vertices, size
 }
 
 /// Draw a mesh to the view of a specific camera.
-sf_result sf_mesh_draw(sf_mesh *mesh, sf_shader *shader, sf_camera *camera, sf_transform transform);
+EXPORT sf_result sf_mesh_draw(sf_mesh *mesh, sf_shader *shader, sf_camera *camera, sf_transform transform);
 
 typedef struct {
     sf_transform *node;
@@ -180,6 +181,6 @@ typedef struct {
 } sf_renderer;
 
 /// Turns an sf_transform into a model matrix.
-void sf_transform_model(mat4 out, const sf_transform transform);
+EXPORT void sf_transform_model(mat4 out, const sf_transform transform);
 
 #endif // GRAPHICS_H
