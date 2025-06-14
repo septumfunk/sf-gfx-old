@@ -46,13 +46,12 @@ void sf_cb_char(GLFWwindow* window, unsigned int codepoint) {
     }
 }
 
-sf_result sf_window_new(sf_window **out, const sf_str title, const sf_vec2 size, sf_camera *camera) {
+sf_result sf_window_new(sf_window **out, const sf_str title, const sf_vec2 size) {
     *out = calloc(1, sizeof(sf_window));
     memcpy(*out, &(sf_window) {
         .title = sf_str_dup(title),
         .size = size,
         .mouse_position = { 0, 0 },
-        .camera = camera,
     }, sizeof(sf_window));
     sf_window *win = *out;
 
@@ -96,7 +95,7 @@ bool sf_window_loop(sf_window *window) {
     return !glfwWindowShouldClose(window->handle);
 }
 
-void sf_window_swap(sf_window *window) {
+void sf_window_draw(sf_window *window, [[maybe_unused]] sf_camera *camera) {
     glfwSwapBuffers(window->handle);
     for (int i = 0; i < SF_KEY_COUNT; ++i) {
         if (window->keyboard[i] == SF_KEY_PRESSED)

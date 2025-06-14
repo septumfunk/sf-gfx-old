@@ -38,7 +38,7 @@ typedef struct {
 } sf_window;
 
 /// Construct and open a new OpenGL window.
-[[nodiscard]] EXPORT sf_result sf_window_new(sf_window **out, const sf_str title, const sf_vec2 size, sf_camera *camera);
+[[nodiscard]] EXPORT sf_result sf_window_new(sf_window **out, const sf_str title, const sf_vec2 size);
 /// Free a window and its resources.
 EXPORT void sf_window_free(sf_window *window);
 
@@ -55,7 +55,7 @@ static inline bool sf_key_released(sf_window *window, sf_key key) { return windo
 /// Use this in a while loop.
 EXPORT bool sf_window_loop(sf_window *window);
 /// Swap a window's buffers and finish the frame.
-EXPORT void sf_window_swap(sf_window *window);
+EXPORT void sf_window_draw(sf_window *window, sf_camera *camera);
 
 /// Set the displayed title of a window.
 EXPORT void sf_window_set_title(sf_window *window, const sf_str title);
