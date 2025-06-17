@@ -1,11 +1,10 @@
-#ifndef GRAPHICS_H
-#define GRAPHICS_H
+#ifndef SF_GRAPHICS_H
+#define SF_GRAPHICS_H
 
 #include <sf/result.h>
 #include <sf/numerics.h>
 #include <sf/dynamic.h>
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include <cglm/cglm.h>
 #include "sf/input.h"
 #include "export.h"
@@ -21,46 +20,7 @@ typedef struct {
 /// Create a new camera with its own framebuffer.
 EXPORT sf_camera sf_camera_new(float fov, mat4 projection);
 /// Delete a camera and its framebuffer.
-EXPORT void sf_camera_free(sf_camera *camera);
-
-/// A window with an active OpenGL context and keyboard controls.
-typedef struct {
-    GLFWwindow *handle;
-    sf_str title;
-    sf_vec2 size;
-    sf_vec2 mouse_position;
-
-    sf_camera *camera;
-
-    int8_t keyboard[GLFW_KEY_LAST + 1];
-    uint8_t kb_p;
-    char keyboard_string[UINT8_MAX];
-} sf_window;
-
-/// Construct and open a new OpenGL window.
-[[nodiscard]] EXPORT sf_result sf_window_new(sf_window **out, const sf_str title, const sf_vec2 size);
-/// Free a window and its resources.
-EXPORT void sf_window_free(sf_window *window);
-
-/// Check is a key is currently pressed down.
-static inline bool sf_key_check(sf_window *window, sf_key key)    { return window->keyboard[key] > 0;                }
-/// Check if a key was pressed on this frame.
-static inline bool sf_key_pressed(sf_window *window, sf_key key)  { return window->keyboard[key] == SF_KEY_PRESSED; }
-/// Check if a key was released on this frame.
-static inline bool sf_key_released(sf_window *window, sf_key key) { return window->keyboard[key] == SF_KEY_RELEASED; }
-/// Get the string of keys pressed since the last time this function was called.
-[[nodiscard]] sf_str sf_key_string(sf_window *window);
-
-/// Prepare for a frame, and/or return whether a window should close.
-/// Use this in a while loop.
-EXPORT bool sf_window_loop(sf_window *window);
-/// Swap a window's buffers and finish the frame.
-EXPORT void sf_window_draw(sf_window *window, sf_camera *camera);
-
-/// Set the displayed title of a window.
-EXPORT void sf_window_set_title(sf_window *window, const sf_str title);
-/// Set the displayed size of a window.
-EXPORT void sf_window_set_size(sf_window *window, sf_vec2 size);
+EXPORT void sf_camera_free(const sf_camera *camera);
 
 /// An OpenGL shader program and its vertex/fragment glsl shaders.
 /// Uniform locations are automatically cached as you use them.
@@ -78,7 +38,7 @@ typedef struct {
 EXPORT void sf_shader_free(sf_shader *shader);
 
 /// Bind to the shader's OpenGL program.
-static inline void sf_shader_bind(sf_shader *shader) { glUseProgram(shader->program); }
+static inline void sf_shader_bind(const sf_shader *shader) { glUseProgram(shader->program); }
 
 /// Set a shader's float uniform to the desired value by name.
 [[nodiscard]] EXPORT sf_result sf_shader_uniform_float(sf_shader *shader, sf_str name, float value);
@@ -159,20 +119,20 @@ typedef struct {
 EXPORT void sf_mesh_free(sf_mesh *mesh);
 
 /// Copy a mesh to vram (Vertex Buffer)
-EXPORT void sf_mesh_update(sf_mesh *mesh);
+EXPORT void sf_mesh_update(const sf_mesh *mesh);
 /// Add a single vertex to a mesh's model.
-static inline void sf_mesh_add_vertex(sf_mesh *mesh, sf_vertex vertex) {
+static inline void sf_mesh_add_vertex(sf_mesh *mesh, const sf_vertex vertex) {
     sf_vec_push(&mesh->vertices, &vertex);
     sf_mesh_update(mesh);
 }
 /// Add an array of vertices to a mesh's model.
-static inline void sf_mesh_add_vertices(sf_mesh *mesh, sf_vertex *vertices, size_t count) {
+static inline void sf_mesh_add_vertices(sf_mesh *mesh, const sf_vertex *vertices, const size_t count) {
     sf_vec_append(&mesh->vertices, vertices, count);
     sf_mesh_update(mesh);
 }
 
 /// Draw a mesh to the view of a specific camera.
-EXPORT sf_result sf_mesh_draw(sf_mesh *mesh, sf_shader *shader, sf_camera *camera, sf_transform transform);
+EXPORT sf_result sf_mesh_draw(const sf_mesh *mesh, sf_shader *shader, sf_camera *camera, sf_transform transform);
 
 typedef struct {
     sf_transform *node;
@@ -181,6 +141,6 @@ typedef struct {
 } sf_renderer;
 
 /// Turns an sf_transform into a model matrix.
-EXPORT void sf_transform_model(mat4 out, const sf_transform transform);
+EXPORT void sf_transform_model(mat4 out, sf_transform transform);
 
-#endif // GRAPHICS_H
+#endif // SF_GRAPHICS_H

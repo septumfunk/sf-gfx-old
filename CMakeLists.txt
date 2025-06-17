@@ -23,13 +23,14 @@ target_include_directories(glad PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # Fetch Dependencies
 include(FetchContent)
-
-FetchContent_Declare(
-    sf-std
-    GIT_REPOSITORY https://github.com/septek/sf-std.git
-    GIT_TAG master
-)
-FetchContent_MakeAvailable(sf-std)
+if (NOT SF_DEVENV)
+    FetchContent_Declare(
+            sf-std
+            GIT_REPOSITORY https://github.com/septek/sf-std.git
+            GIT_TAG master
+    )
+    FetchContent_MakeAvailable(sf-std)
+endif()
 
 FetchContent_Declare(
     glfw
@@ -61,9 +62,7 @@ target_link_libraries(sf-gfx PUBLIC
 target_compile_options(sf-gfx PRIVATE
     -Wall -Werror -Wextra -pedantic -Wconversion
     -Wsign-conversion -Wformat=2 -Wundef
-    -Wold-style-cast -Woverloaded-virtual
-    -Wdouble-promotion -Wnon-virtual-dtor
-    -Wnull-dereference -Wstrict-overflow
+    -Wdouble-promotion -Wnull-dereference -Wstrict-overflow
 )
 
 if (WIN32)
