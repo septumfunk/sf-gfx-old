@@ -3,11 +3,10 @@
 
 #include <sf/result.h>
 #include <sf/numerics.h>
-#include <sf/dynamic.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "sf/graphics.h"
-#include "sf/input.h"
+#include "sf/camera.h"
+#include "sf/key.h"
 #include "export.h"
 
 /// A window with an active OpenGL context and keyboard controls.

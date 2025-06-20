@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.27)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
 
 set(SF_LIBRARY_TYPE STATIC)
 if (BUILD_SHARED_LIBS)
@@ -12,7 +13,10 @@ endif()
 project(sf-gfx C)
 
 add_library(sf-gfx ${SF_LIBRARY_TYPE}
-    src/graphics.c
+    src/camera.c
+    src/window.c
+    src/shaders.c
+    src/meshes.c
 )
 target_include_directories(sf-gfx PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_library(glad ${SF_LIBRARY_TYPE}
