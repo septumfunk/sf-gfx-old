@@ -17,12 +17,18 @@ add_library(sf-gfx ${SF_LIBRARY_TYPE}
     src/window.c
     src/shaders.c
     src/meshes.c
+    src/textures.c
 )
 target_include_directories(sf-gfx PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_library(glad ${SF_LIBRARY_TYPE}
     src/glad.c
+    include/sf/textures.h
 )
 target_include_directories(glad PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_library(stb ${SF_LIBRARY_TYPE}
+    src/stb_image.c
+)
+target_include_directories(stb PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 
 # Fetch Dependencies
@@ -62,6 +68,7 @@ target_link_libraries(sf-gfx PUBLIC
     glfw
     cglm
     glad
+    stb
 )
 target_compile_options(sf-gfx PRIVATE
     -Wall -Werror -Wextra -pedantic -Wconversion

@@ -27,6 +27,8 @@ static inline void sf_shader_bind(const sf_shader *shader) { glUseProgram(shader
 
 /// Set a shader's float uniform to the desired value by name.
 [[nodiscard]] EXPORT sf_result sf_shader_uniform_float(sf_shader *shader, sf_str name, float value);
+/// Set a shader's int uniform to the desired value by name.
+[[nodiscard]] EXPORT sf_result sf_shader_uniform_int(sf_shader *shader, sf_str name, int value);
 /// Set a shader's vector2 uniform to the desired value by name.
 [[nodiscard]] EXPORT sf_result sf_shader_uniform_vec2(sf_shader *shader, sf_str name, sf_vec2 value);
 /// Set a shader's vector3 uniform to the desired value by name.

@@ -4,7 +4,7 @@
 #include <sf/numerics.h>
 #include "sf/camera.h"
 #include "sf/shaders.h"
-#include "export.h"
+#include "sf/textures.h"
 
 /// Contains vertex data for composing a mesh.
 #pragma pack(push, 1)
@@ -22,30 +22,25 @@ typedef uint8_t sf_mesh_flags;
 
 /// A mesh containing data for drawing a 3d model of any variety.
 typedef struct {
-    GLuint vao, vbo;
-    sf_vec vertices; /// Should contain no more than INT_MAX vertices.
+    GLuint vao, vbo, ebo;
+    sf_vec vertices, indices; /// Should contain no more than INT_MAX vertices.
+    sf_map cache;
     sf_mesh_flags flags;
 } sf_mesh;
 
 /// Create a new, empty mesh.
 [[nodiscard]] EXPORT sf_mesh sf_mesh_new();
 /// Free a mesh and delete all of its vertices.
-EXPORT void sf_mesh_free(sf_mesh *mesh);
+EXPORT void sf_mesh_delete(sf_mesh *mesh);
 
 /// Copy a mesh to vram (Vertex Buffer)
 EXPORT void sf_mesh_update(const sf_mesh *mesh);
 /// Add a single vertex to a mesh's model.
-static inline void sf_mesh_add_vertex(sf_mesh *mesh, const sf_vertex vertex) {
-    sf_vec_push(&mesh->vertices, &vertex);
-    sf_mesh_update(mesh);
-}
+EXPORT void sf_mesh_add_vertex(sf_mesh *mesh, sf_vertex vertex);
 /// Add an array of vertices to a mesh's model.
-static inline void sf_mesh_add_vertices(sf_mesh *mesh, const sf_vertex *vertices, const size_t count) {
-    sf_vec_append(&mesh->vertices, vertices, count);
-    sf_mesh_update(mesh);
-}
+EXPORT void sf_mesh_add_vertices(sf_mesh *mesh, const sf_vertex *vertices, size_t count);
 
 /// Draw a mesh to the view of a specific camera.
-EXPORT sf_result sf_mesh_draw(const sf_mesh *mesh, sf_shader *shader, sf_camera *camera, sf_transform transform);
+EXPORT sf_result sf_mesh_draw(const sf_mesh *mesh, sf_shader *shader, sf_camera *camera, sf_transform transform, const sf_texture *texture);
 
 #endif // MESHES_H

@@ -85,15 +85,15 @@ void sf_shader_free(sf_shader *shader) {
 }
 
 sf_result sf_get_uniform(sf_shader *shader, GLint *out, const sf_str name) {
-    if (sf_map_exists(&shader->uniforms, name)) {
-        *out = sf_map_get(&shader->uniforms, GLint, name);
+    if (sf_map_sexists(&shader->uniforms, name)) {
+        *out = sf_map_sget(&shader->uniforms, GLint, name);
         return sf_ok();
     }
 
     const GLint loc = glGetUniformLocation(shader->program, name.c_str);
     if (loc < 0)
         return sf_err(sf_str_fmt("Uniform '%s' not found.", name.c_str));
-    sf_map_insert(&shader->uniforms, name, &loc);
+    sf_map_sinsert(&shader->uniforms, name, &loc);
     *out = loc;
 
     return sf_ok();
@@ -105,6 +105,16 @@ sf_result sf_shader_uniform_float(sf_shader *shader, const sf_str name, const fl
     if (!res.ok)
         return res;
     glUniform1f(uf, value);
+
+    return sf_ok();
+}
+
+sf_result sf_shader_uniform_int(sf_shader *shader, const sf_str name, const int value) {
+    GLint uf;
+    const sf_result res = sf_get_uniform(shader, &uf, name);
+    if (!res.ok)
+        return res;
+    glUniform1i(uf, value);
 
     return sf_ok();
 }
@@ -140,12 +150,21 @@ sf_result sf_shader_uniform_mat4(sf_shader *shader, const sf_str name, mat4 valu
 }
 
 void sf_transform_model(mat4 out, const sf_transform transform) {
-    glm_mat4_identity(out);
-    glm_scale(out, (vec3){transform.scale.x, transform.scale.y, transform.scale.z});
-    glm_rotate(out, transform.rotation.x, (vec3){1, 0, 0});
-    glm_rotate(out, transform.rotation.y, (vec3){0, 1, 0});
-    glm_rotate(out, transform.rotation.z, (vec3){0, 0, 1});
-    glm_translate(out, (vec3){transform.position.x, transform.position.y, transform.position.z});
+    mat4 local;
+    glm_mat4_identity(local);
+    glm_translate(local, (vec3){transform.position.x, transform.position.y, transform.position.z});
+
+    glm_rotate(local, transform.rotation.x, (vec3){1, 0, 0});
+    glm_rotate(local, transform.rotation.y, (vec3){0, 1, 0});
+    glm_rotate(local, transform.rotation.z, (vec3){0, 0, 1});
+
+    glm_scale(local, (vec3){transform.scale.x, transform.scale.y, transform.scale.z});
+
+    if (transform.parent) {
+        mat4 parent_matrix;
+        sf_transform_model(parent_matrix, *transform.parent);
+        glm_mat4_mul(parent_matrix, local, out);
+    } else glm_mat4_copy(local, out);
 }
 
 void sf_transform_view(mat4 out, const sf_transform transform) {

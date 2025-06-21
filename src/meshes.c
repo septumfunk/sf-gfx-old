@@ -7,11 +7,14 @@
 sf_mesh sf_mesh_new() {
     sf_mesh mesh = {
         .vertices = sf_vec_new(sf_vertex),
+        .indices = sf_vec_new(int32_t),
+        .cache = sf_map_new(),
         .flags = SF_MESH_ACTIVE | SF_MESH_VISIBLE,
     };
 
     glGenVertexArrays(1, &mesh.vao);
     glGenBuffers(1, &mesh.vbo);
+    glGenBuffers(1, &mesh.ebo);
 
     glBindVertexArray(mesh.vao);
     glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
@@ -35,11 +38,14 @@ sf_mesh sf_mesh_new() {
     return mesh;
 }
 
-void sf_mesh_free(sf_mesh *mesh) {
+void sf_mesh_delete(sf_mesh *mesh) {
     sf_vec_delete(&mesh->vertices);
+    sf_vec_delete(&mesh->indices);
+    sf_map_delete(&mesh->cache);
 
     glDeleteVertexArrays(1, &mesh->vao);
     glDeleteBuffers(1, &mesh->vbo);
+    glDeleteBuffers(1, &mesh->ebo);
 
     mesh->flags &= ~SF_MESH_ACTIVE;
     mesh->flags &= ~SF_MESH_VISIBLE;
@@ -47,9 +53,12 @@ void sf_mesh_free(sf_mesh *mesh) {
 
 void sf_mesh_update(const sf_mesh *mesh) {
     glBindVertexArray(mesh->vao);
+
     glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
-    int64_t c = (int64_t)(mesh->vertices.count * mesh->vertices.element_size);
-    glBufferData(GL_ARRAY_BUFFER, c, mesh->vertices.data, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, (int64_t)(mesh->vertices.count * mesh->vertices.element_size), mesh->vertices.data, GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (int64_t)(mesh->indices.count * mesh->indices.element_size), mesh->indices.data, GL_STATIC_DRAW);
 
     if (CLEAN_BIND) {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -57,7 +66,30 @@ void sf_mesh_update(const sf_mesh *mesh) {
     }
 }
 
-sf_result sf_mesh_draw(const sf_mesh *mesh, sf_shader *shader, sf_camera *camera, const sf_transform transform) {
+void _sf_mesh_add_vertex(sf_mesh *mesh, const sf_vertex vertex) {
+    const sf_map_key key = (sf_map_key){(uint8_t *)&vertex,sizeof(sf_vertex)};
+    if (sf_map_exists(&mesh->cache, key)) {
+        sf_vec_push(&mesh->indices, sf_map_get(&mesh->cache, key));
+        return;
+    }
+
+    sf_vec_push(&mesh->vertices, &vertex);
+    sf_vec_push(&mesh->indices, &(int32_t){(int32_t)mesh->vertices.count - 1});
+    sf_map_insert(&mesh->cache, key, &(int32_t){(int32_t)mesh->vertices.count - 1}, sizeof(int32_t));
+}
+
+void sf_mesh_add_vertex(sf_mesh *mesh, const sf_vertex vertex) {
+    _sf_mesh_add_vertex(mesh, vertex);
+    sf_mesh_update(mesh);
+}
+
+void sf_mesh_add_vertices(sf_mesh *mesh, const sf_vertex *vertices, const size_t count) {
+    for (size_t i = 0; i < count; ++i)
+        _sf_mesh_add_vertex(mesh, vertices[i]);
+    sf_mesh_update(mesh);
+}
+
+sf_result sf_mesh_draw(const sf_mesh *mesh, sf_shader *shader, sf_camera *camera, const sf_transform transform, const sf_texture *texture) {
     sf_shader_bind(shader);
 
     sf_result res = sf_shader_uniform_mat4(shader, sf_lit("m_projection"), camera->projection);
@@ -78,10 +110,18 @@ sf_result sf_mesh_draw(const sf_mesh *mesh, sf_shader *shader, sf_camera *camera
     if (!res.ok)
         return res;
 
+    res = sf_shader_uniform_int(shader, sf_lit("t_sampler"), 0);
+    if (!res.ok)
+        return res;
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture->gl_handle);
     glBindVertexArray(mesh->vao);
-    glDrawArrays(GL_TRIANGLES, 0, (int)mesh->vertices.count);
-    if (CLEAN_BIND)
-        glBindVertexArray(0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
+    glDrawElements(GL_TRIANGLES, (int32_t)mesh->indices.count, GL_UNSIGNED_INT, nullptr);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 
     return sf_ok();
 }
