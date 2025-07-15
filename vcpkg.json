@@ -1,0 +1,15 @@
+{
+  "name" : "sf-gfx",
+  "version-string" : "1.0.0",
+
+  "dependencies" : [ {
+    "name" : "glfw3",
+    "version>=" : "3.4#1"
+  }, {
+    "name" : "glad",
+    "version>=" : "0.1.36"
+  }, {
+    "name" : "cglm",
+    "version>=" : "0.9.4"
+  } ]
+}

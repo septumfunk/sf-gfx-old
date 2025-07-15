@@ -34,7 +34,7 @@ static inline void sf_shader_bind(const sf_shader *shader) { glUseProgram(shader
 /// Set a shader's vector3 uniform to the desired value by name.
 [[nodiscard]] EXPORT sf_result sf_shader_uniform_vec3(sf_shader *shader, sf_str name, sf_vec3 value);
 /// Set a shader's matrix uniform to the desired value by name.
-[[nodiscard]] EXPORT sf_result sf_shader_uniform_mat4(sf_shader *shader, sf_str name, mat4 value);
+[[nodiscard]] EXPORT sf_result sf_shader_uniform_mat4(sf_shader *shader, sf_str name, const mat4 value);
 
 /// Log OpenGL errors to the console.
 static inline void sf_opengl_log() {

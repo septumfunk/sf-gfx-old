@@ -20,11 +20,6 @@ add_library(sf-gfx ${SF_LIBRARY_TYPE}
     src/textures.c
 )
 target_include_directories(sf-gfx PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-add_library(glad ${SF_LIBRARY_TYPE}
-    src/glad.c
-    include/sf/textures.h
-)
-target_include_directories(glad PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_library(stb ${SF_LIBRARY_TYPE}
     src/stb_image.c
 )
@@ -42,26 +37,9 @@ if (NOT SF_DEVENV)
     FetchContent_MakeAvailable(sf-std)
 endif()
 
-FetchContent_Declare(
-    glfw
-    GIT_REPOSITORY https://github.com/glfw/glfw.git
-    GIT_TAG master
-)
-FetchContent_MakeAvailable(glfw)
-
-FetchContent_Declare(
-    cglm
-    GIT_REPOSITORY https://github.com/recp/cglm.git
-    GIT_TAG master
-)
-FetchContent_MakeAvailable(cglm)
-if (WIN32 AND BUILD_SHARED_LIBS)
-    add_custom_command(TARGET sf-gfx POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:septek-core> $<TARGET_RUNTIME_DLLS:septek-core>
-        USES_TERMINAL COMMAND_EXPAND_LISTS
-    )
-endif()
-
+find_package(glfw3 CONFIG REQUIRED)
+find_package(glad CONFIG REQUIRED)
+find_package(cglm CONFIG REQUIRED)
 
 target_link_libraries(sf-gfx PUBLIC
     sf-std

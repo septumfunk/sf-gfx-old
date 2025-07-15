@@ -3,6 +3,11 @@
 #include "sf/camera.h"
 
 #define CLEAN_BIND true
+const sf_camera *SF_RENDER_DEFAULT = &(sf_camera){
+    .type = SF_CAMERA_RENDER_DEFAULT,
+    .transform = SF_TRANSFORM_IDENTITY,
+    .framebuffer = 0,
+};
 
 sf_mesh sf_mesh_new() {
     sf_mesh mesh = {
@@ -89,10 +94,16 @@ void sf_mesh_add_vertices(sf_mesh *mesh, const sf_vertex *vertices, const size_t
     sf_mesh_update(mesh);
 }
 
-sf_result sf_mesh_draw(const sf_mesh *mesh, sf_shader *shader, sf_camera *camera, const sf_transform transform, const sf_texture *texture) {
+sf_result sf_mesh_draw(const sf_mesh *mesh, sf_shader *shader, const sf_camera *camera, const sf_transform transform, const sf_texture *texture) {
     sf_shader_bind(shader);
 
-    sf_result res = sf_shader_uniform_mat4(shader, sf_lit("m_projection"), camera->projection);
+    sf_result res;
+    if (camera->type == SF_CAMERA_RENDER_DEFAULT) {
+        mat4 identity;
+        glm_mat4_identity(identity);
+        res = sf_shader_uniform_mat4(shader, sf_lit("m_projection"), identity);
+    } else
+        res = sf_shader_uniform_mat4(shader, sf_lit("m_projection"), camera->projection);
     if (!res.ok)
         return res;
 
@@ -114,14 +125,16 @@ sf_result sf_mesh_draw(const sf_mesh *mesh, sf_shader *shader, sf_camera *camera
     if (!res.ok)
         return res;
 
+    glBindFramebuffer(GL_FRAMEBUFFER, camera->framebuffer);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture->gl_handle);
+    glBindTexture(GL_TEXTURE_2D, texture->handle);
     glBindVertexArray(mesh->vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
     glDrawElements(GL_TRIANGLES, (int32_t)mesh->indices.count, GL_UNSIGNED_INT, nullptr);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     return sf_ok();
 }

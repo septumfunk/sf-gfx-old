@@ -6,6 +6,9 @@
 #include "sf/shaders.h"
 #include "sf/textures.h"
 
+/// Camera that renders to the default framebuffer instead of its own framebuffer.
+extern const sf_camera *SF_RENDER_DEFAULT;
+
 /// Contains vertex data for composing a mesh.
 #pragma pack(push, 1)
 typedef struct {
@@ -40,7 +43,8 @@ EXPORT void sf_mesh_add_vertex(sf_mesh *mesh, sf_vertex vertex);
 /// Add an array of vertices to a mesh's model.
 EXPORT void sf_mesh_add_vertices(sf_mesh *mesh, const sf_vertex *vertices, size_t count);
 
-/// Draw a mesh to the view of a specific camera.
-EXPORT sf_result sf_mesh_draw(const sf_mesh *mesh, sf_shader *shader, sf_camera *camera, sf_transform transform, const sf_texture *texture);
+/// Draw a mesh to the framebuffer of the specified camera.
+/// To draw to the default framebuffer, pass SF_RENDER_DEFAULT.
+EXPORT sf_result sf_mesh_draw(const sf_mesh *mesh, sf_shader *shader, const sf_camera *camera, sf_transform transform, const sf_texture *texture);
 
 #endif // MESHES_H

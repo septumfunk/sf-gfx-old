@@ -1,31 +1,23 @@
 #include "sf/camera.h"
-
 #include "sf/shaders.h"
 
-sf_camera sf_camera_perspective(float fov, float aspect, float near, float far) {
-    sf_camera cam = {
-        .type = SF_CAMERA_PERSPECTIVE,
+sf_camera sf_camera_new(const sf_camera_type type, const float fov, const float near, const float far) {
+    return (sf_camera){
+        .type = type,
         .transform = SF_TRANSFORM_IDENTITY,
         .fov = fov,
+        .near = near,
+        .far = far,
+        .clear_color = (sf_rgba){0, 0, 0, 0},
     };
-    glm_perspective(glm_rad(fov), aspect, near, far, cam.projection);
-    glGenFramebuffers(1, &cam.framebuffer);
-    return cam;
 }
 
-sf_camera sf_camera_ortho(float left, float right, float bottom, float top, float near, float far) {
-    sf_camera cam = {
-        .type = SF_CAMERA_ORTHOGRAPHIC,
-        .transform = SF_TRANSFORM_IDENTITY,
-        .fov = 0,
-    };
-    glm_ortho(left, right, bottom, top, near, far, cam.projection);
-    glGenFramebuffers(1, &cam.framebuffer);
-    return cam;
-}
-
-void sf_camera_free(const sf_camera *camera) {
-    glDeleteFramebuffers(1, &camera->framebuffer);
+void sf_camera_delete(sf_camera *camera) {
+    if (camera->framebuffer != 0) {
+        glDeleteFramebuffers(1, &camera->framebuffer);
+        sf_texture_delete(&camera->fb_color);
+        sf_texture_delete(&camera->fb_stencil);
+    }
 }
 
 sf_vec3 sf_camera_right(const sf_camera *camera) {

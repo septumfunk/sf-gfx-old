@@ -139,7 +139,7 @@ sf_result sf_shader_uniform_vec3(sf_shader *shader, const sf_str name, const sf_
     return sf_ok();
 }
 
-sf_result sf_shader_uniform_mat4(sf_shader *shader, const sf_str name, mat4 value) {
+sf_result sf_shader_uniform_mat4(sf_shader *shader, const sf_str name, const mat4 value) {
     GLint uf;
     const sf_result res = sf_get_uniform(shader, &uf, name);
     if (!res.ok)
@@ -152,19 +152,27 @@ sf_result sf_shader_uniform_mat4(sf_shader *shader, const sf_str name, mat4 valu
 void sf_transform_model(mat4 out, const sf_transform transform) {
     mat4 local;
     glm_mat4_identity(local);
-    glm_translate(local, (vec3){transform.position.x, transform.position.y, transform.position.z});
-
-    glm_rotate(local, transform.rotation.x, (vec3){1, 0, 0});
-    glm_rotate(local, transform.rotation.y, (vec3){0, 1, 0});
-    glm_rotate(local, transform.rotation.z, (vec3){0, 0, 1});
-
     glm_scale(local, (vec3){transform.scale.x, transform.scale.y, transform.scale.z});
 
     if (transform.parent) {
+        glm_translate(local, (vec3){transform.position.x, transform.position.y, transform.position.z});
+
+        glm_rotate(local, glm_rad(transform.rotation.x), (vec3){1, 0, 0});
+        glm_rotate(local, glm_rad(transform.rotation.y), (vec3){0, 1, 0});
+        glm_rotate(local, glm_rad(transform.rotation.z), (vec3){0, 0, 1});
+
         mat4 parent_matrix;
         sf_transform_model(parent_matrix, *transform.parent);
         glm_mat4_mul(parent_matrix, local, out);
-    } else glm_mat4_copy(local, out);
+    } else {
+        glm_rotate(local, glm_rad(transform.rotation.x), (vec3){1, 0, 0});
+        glm_rotate(local, glm_rad(transform.rotation.y), (vec3){0, 1, 0});
+        glm_rotate(local, glm_rad(transform.rotation.z), (vec3){0, 0, 1});
+
+        glm_translate(local, (vec3){transform.position.x, transform.position.y, transform.position.z});
+
+        glm_mat4_copy(local, out);
+    }
 }
 
 void sf_transform_view(mat4 out, const sf_transform transform) {
